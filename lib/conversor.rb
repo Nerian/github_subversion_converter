@@ -1,7 +1,12 @@
 
 module Conversor
    class Conversor
-     
+                     
+     #output is used for Cucumber testing.
+     #svn_address_origin is the online address of the svn repo that we can to mirror from
+     #svn_address_destiny is the online address of the svn repo that we want to mirror to  
+     #svn_origin_name is the name of the checkout origin repo.
+     #svn_destiny_name is the name of the checkout destiny repo.
      attr_accessor :output, :svn_address_origin, :svn_address_destiny, :svn_origin_name, :svn_destiny_name
       
      def initialize(output)
