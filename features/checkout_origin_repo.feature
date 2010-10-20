@@ -4,16 +4,17 @@ Feature: Checkout Svn origin repo
   I want svn checkout the svn repo                                                             
 
   Scenario Outline: Checkout the SVN Origin repo
-    Given there are some SVN repos like "<name>" and "<revision>"
-	And the SVN Origin Repo is "<origin>" with name "<name>"
+	Given we initiate the conversor
+    And there are some SVN repos like "<name>"
+	And the SVN Origin Repo is "<origin>"
     When I checkout origin repo
-    Then I should see a message "SVN Destiny Checkout complete"       
+    Then I should see a message "SVN origin Checkout complete"       
 
   Scenarios: Checkout all the repos for tests
-	| origin | name | revision |
-	| http://svn.github.com/Nerian/JPovray.git | git_revision5 | revision |
-	| file:///tmp/Server_Repos/git_svn-revision2 | git_svn-revision2 | revision |
- 	| file:///tmp/Server_Repos/git_svn-revision5 | git_svn-revision5 | revision |
+	| origin | name |
+	#| http://svn.github.com/Nerian/JPovray.git | git_revision5 |
+	| file:///tmp/Server_Repos/git_svn-revision2 | git_svn-revision2 |
+ 	| file:///tmp/Server_Repos/git_svn-revision5 | git_svn-revision5 |
   
   
   
