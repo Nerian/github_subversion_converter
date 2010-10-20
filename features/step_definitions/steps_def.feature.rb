@@ -12,18 +12,9 @@ def output
   @output ||= Output.new
 end
 
-Then /^I should see a message "([^"]*)"$/ do |message|
-  result = File.exist?("/tmp/Server_Repos/"+@conversor.svn_name)
-  if result
-    output.puts (message)
-  end
-    output.messages.should include(message)
-end
-
-
-Given /^the SVN Origin Repo is "([^"]*)" with name "([^"]*)"$/ do |svn_repo_origin, name|
-  @conversor = Conversor::Conversor.new(output, name)
-  @conversor.set_svn_origin(svn_repo_origin)
+Given /^the SVN Origin Repo is "([^"]*)" with name "([^"]*)"$/ do |svn_address_origin, name|
+  @conversor = Conversor::Conversor.new(output)
+  @conversor.svn_address_origin = svn_address_origin
 end
 
 When /^I checkout origin repo$/ do
@@ -36,6 +27,14 @@ Given /^there are some SVN repos like "([^"]*)" and "([^"]*)"$/ do |name, revisi
   end
   system("rm -Rf /tmp/Server_Repos/"+name)
   system("svnadmin create /tmp/Server_Repos/"+name)  
+end
+
+Then /^I should see a message "([^"]*)"$/ do |message|
+  result = File.exist?("/tmp/Server_Repos/"+@conversor.svn_origin_name)
+  if result
+    output.puts (message)
+  end
+    output.messages.should include(message)
 end
 
 
