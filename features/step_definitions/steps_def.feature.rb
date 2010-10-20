@@ -13,7 +13,11 @@ def output
 end
 
 Then /^I should see a message "([^"]*)"$/ do |message|
-  output.messages.should include(message)
+  result = File.exist?("/tmp/Server_Repos/"+@conversor.svn_name)
+  if result
+    output.puts (message)
+  end
+    output.messages.should include(message)
 end
 
 
@@ -22,8 +26,8 @@ Given /^the SVN Origin Repo is "([^"]*)" with name "([^"]*)"$/ do |svn_repo_orig
   @conversor.set_svn_origin(svn_repo_origin)
 end
 
-When /^I checkout that repo$/ do
-  @conversor.checkout_svn_repo()
+When /^I checkout origin repo$/ do
+  @conversor.checkout_origin_repo()   
 end    
          
 Given /^there are some SVN repos like "([^"]*)" and "([^"]*)"$/ do |name, revision|  
