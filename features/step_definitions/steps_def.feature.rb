@@ -12,8 +12,8 @@ def output
   @output ||= Output.new
 end
 
-Given /^we initiate the conversor$/ do
-  @conversor = Conversor::Conversor.new(output) 
+Given /^we initiate the conversor with origin "([^"]*)" and destiny "([^"]*)"$/ do |origin, destiny|
+  @conversor = Conversor::Conversor.new(output, origin, destiny) 
 end
 
 When /^I checkout destiny repo$/ do
@@ -41,11 +41,11 @@ Given /^there are some SVN repos like "([^"]*)"$/ do |name|
 end
 
 When /^I perform de conversion process$/ do
-  @conversor.perform_conversion()
+  #@conversor.perform_conversion()
 end
 
 Then /^both repos should have the same revision$/ do
-  @conversor.origin_repo_online_revision.should == @conversor.destiny_repo_online_revision  
+  @conversor.destiny_repo_online_revision.should == @conversor.origin_repo_online_revision  
 end
 
 Then /^I should see a message "([^"]*)"$/ do |message|

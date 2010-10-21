@@ -4,11 +4,11 @@ Feature: Do conversion
   I want to commit every change from origin to destiny
 
 Scenario Outline: Do conversion
-	Given we initiate the conversor
+	Given we initiate the conversor with origin "<origin>" and destiny "<destiny>" 
     And there are some SVN repos like "<name_origin>"
 	And there are some SVN repos like "<name_destiny>"
-	And the SVN Origin Repo is "<origin>"
-	And the SVN destiny Repo is "<destiny>"
+	#And the SVN Origin Repo is "<origin>"
+	#And the SVN destiny Repo is "<destiny>"
     When I checkout origin repo
 	And I checkout destiny repo
 	And I perform de conversion process
