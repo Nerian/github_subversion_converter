@@ -5,10 +5,8 @@ Feature: Do conversion
 
 Scenario Outline: Do conversion
 	Given we initiate the conversor with origin "<origin>" and destiny "<destiny>" 
-    And there are some SVN repos like "<name_origin>"
+    #And there are some SVN repos like "<name_origin>"
 	And there are some SVN repos like "<name_destiny>"
-	#And the SVN Origin Repo is "<origin>"
-	#And the SVN destiny Repo is "<destiny>"
     When I checkout origin repo
 	And I checkout destiny repo
 	And I perform de conversion process
@@ -16,6 +14,6 @@ Scenario Outline: Do conversion
 
   Scenarios: Origin has commit that arent on the destiny
 	| origin | name_origin | name_destiny | destiny |
-	| http://svn.github.com/Nerian/JPovray.git | origin | destiny | file:///tmp/Server_Repos/git_svn-revision2 |
+	| http://svn.github.com/Nerian/JPovray.git | origin | destiny | file:///tmp/Server_Repos/destiny |
 
   

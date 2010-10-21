@@ -41,11 +41,11 @@ Given /^there are some SVN repos like "([^"]*)"$/ do |name|
 end
 
 When /^I perform de conversion process$/ do
-  #@conversor.perform_conversion()
+  @conversor.perform_conversion()
 end
 
 Then /^both repos should have the same revision$/ do
-  @conversor.destiny_repo_online_revision.should == @conversor.origin_repo_online_revision  
+  @conversor.destiny_repo_online_revision.should == 6  
 end
 
 Then /^I should see a message "([^"]*)"$/ do |message|

@@ -15,14 +15,9 @@ module Conversor
        @svn_destiny_name = "destiny"
        @svn_address_origin = svn_address_origin
        @svn_address_destiny = svn_address_destiny
-              
-       if(final_revision_that_you_want_to_mirror.nil?)                                     
-         checkout_origin_repo()
-         final_revision_that_you_want_to_mirror = origin_repo_online_revision()
-       else
-         @final_revision_that_you_want_to_mirror = final_revision_that_you_want_to_mirror  
-       end
-         
+                        
+       checkout_origin_repo()
+       @final_revision_that_you_want_to_mirror = origin_repo_online_revision()          
      end                   
      
      def checkout_origin_repo(revision=nil)
@@ -49,19 +44,30 @@ module Conversor
        end
        @output.puts "SVN destiny Checkout complete"
      end
+         
+     def perform_conversion()
+       svn_destiny_revision = destiny_repo_online_revision().to_i
      
-     #I assume that the repository from which you want to mirror has 
-     def perform_conversion(revision_number_that_we_want_to_copy_to_destiny = origin_repo_online_revision)                       
-       if origin_repo_online_revision == destiny_repo_online_revision
-         perform_conversion_operation()
-         perform_conversion(revision_number_that_we_want_to_copy_to_destiny+1)         
-       else                                                          
-         perform_conversion(revision_number_that_we_want_to_copy_to_destiny-1)
-       end                     
+       while(svn_destiny_revision < @final_revision_that_you_want_to_mirror.to_i)
+         perform_conversion_operations(svn_destiny_revision.to_s)
+         svn_destiny_revision = svn_destiny_revision + 1 
+       end
      end                                
-     
+           
+     #Hay que hacer los svn rm y svn add analizando la jerarquia
      def perform_conversion_operations(revision_number_that_we_want_to_copy_to_destiny)  
-      checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny-1)
+      checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)
+      system("rm -Rf /tmp/"+@svn_origin_name+"/.svn")      
+      system("rm -Rf /tmp/.svn")
+      system("cp -Rf /tmp/"+@svn_destiny_name+"/.svn /tmp/.svn" )
+      system("rm -Rf /tmp/"+@svn_destiny_name+"/")
+      system("cp -Rf /tmp/"+@svn_origin_name+"/ /tmp/"+@svn_destiny_name+"/")
+      system("cp -Rf /tmp/.svn /tmp/"+@svn_destiny_name+"/")
+      #system("cd /tmp/"+@svn_destiny_name +" && "+"svn add *"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      system("cd /tmp/"+@svn_destiny_name +""+""+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      #system("svn add /tmp/"+@svn_destiny_name)
+      #system("svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'")
+      #system("svn update")      
       
      end
 
@@ -69,7 +75,7 @@ module Conversor
         repo_online_revision(@svn_origin_name)
      end
      
-     def destiny_repo_online_revision
+     def destiny_repo_online_revision()
         repo_online_revision(@svn_destiny_name)  
      end
      
@@ -79,8 +85,10 @@ module Conversor
          File.open("/tmp/svninfo","r").each do |line|
            string_file += line
          end                                     
-         revision_line = /Revision: \d/.match(string_file).to_s
-         revision = /\d/.match(revision_line).to_s
+         revision_line = /Revision: \d/.match(string_file).to_s         
+         revision = /\d/.match(revision_line).to_s             
+         puts revision
+         revision
      end
           
    end
