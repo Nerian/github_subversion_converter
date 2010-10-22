@@ -62,7 +62,7 @@ While the revision of both origin and destiny repo are not the same:
        svn_destiny_revision = destiny_repo_online_revision().to_i               
        continue = true
        while(svn_destiny_revision <= @final_revision_that_you_want_to_mirror.to_i and continue) 
-         puts "-------Current revision in destiny #{svn_destiny_revision.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
+         puts "-------Trying to apply revision #{svn_destiny_revision.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
          perform_conversion_operations(svn_destiny_revision.to_s)
          if not destiny_repo_online_revision.to_i == svn_destiny_revision            
            puts "====Something went wrong, check the log===="
@@ -77,6 +77,22 @@ While the revision of both origin and destiny repo are not the same:
      def perform_conversion_operations(revision_number_that_we_want_to_copy_to_destiny)  
       checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)                                                                    
       
+      # SVN Remove files that are in destiny but are not in origin 
+      list_of_files_that_should_be_removed = []
+      Dir.glob("/tmp/#{@svn_destiny_name}/**") do |file_path_destiny|
+        if not file_path_destiny.include?(".svn")
+          file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
+          #Check if it doesnt exist in origin
+          if not File.exist?(file_path_origin)
+            #Schedule deletion by svn 
+            puts "The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
+            system("svn remove "+file_path_destiny)
+            list_of_files_that_should_be_removed.push(file_path_destiny)
+          end          
+        end
+      end
+      
+=begin rdoc              
       # SVN Remove files that are in destiny but are not in origin      
       list_of_files_that_should_be_removed = []
       puts "\n--> Removing files from destiny that are not in origin\n"        
@@ -86,11 +102,13 @@ While the revision of both origin and destiny repo are not the same:
           if not File.exist?(file_path_origin)          
             puts "The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
             system("svn remove --force "+file_path_destiny)
-            list_of_files_that_should_be_removed.push(file_path_destiny)
-                               
+            list_of_files_that_should_be_removed.push(file_path_destiny)                               
           end 
         end                                                    
-      end   
+      end 
+=end  
+      
+             
       
       list_of_files_that_should_be_removed.each do |name|
         puts "file #{name} was removed"
@@ -121,11 +139,9 @@ While the revision of both origin and destiny repo are not the same:
       puts "\n--> End copying files\n" 
       
       puts "\n\n ======= Current origin schema ======\n"
-      list_directory("/tmp/#{svn_origin_name}") 
+      list_directory("/tmp/#{svn_origin_name}")
       puts "\n\n ======= Current destiny schema ======\n" 
-      list_directory("/tmp/#{svn_destiny_name}")
-      
-      
+      list_directory("/tmp/#{svn_destiny_name}")                 
                             
       puts "\n--> We start copy and write process "
       system("cd /tmp/"+@svn_destiny_name +" && "+"svn add * "+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
@@ -153,10 +169,8 @@ While the revision of both origin and destiny repo are not the same:
          revision
      end 
      
-     def list_directory(directory)
-       Dir.glob("#{directory}/**") do |filename|
-         puts filename
-       end      
+     def list_directory(directory)       
+       Dir.glob( File.join(directory, '**', '*') ) { |file| puts file }   
      end
           
    end
