@@ -79,7 +79,7 @@ While the revision of both origin and destiny repo are not the same:
       
       # SVN Remove files that are in destiny but are not in origin 
       list_of_files_that_should_be_removed = []
-      Dir.glob("/tmp/#{@svn_destiny_name}/**") do |file_path_destiny|
+      Dir.glob(File.join("/tmp/#{@svn_destiny_name}", '**', '*')) do |file_path_destiny|
         if not file_path_destiny.include?(".svn")
           file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
           #Check if it doesnt exist in origin
@@ -90,25 +90,7 @@ While the revision of both origin and destiny repo are not the same:
             list_of_files_that_should_be_removed.push(file_path_destiny)
           end          
         end
-      end
-      
-=begin rdoc              
-      # SVN Remove files that are in destiny but are not in origin      
-      list_of_files_that_should_be_removed = []
-      puts "\n--> Removing files from destiny that are not in origin\n"        
-      Find.find("/tmp/"+@svn_destiny_name+"/") do |file_path_destiny|                                    
-        if not file_path_destiny.include?(".svn")
-          file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
-          if not File.exist?(file_path_origin)          
-            puts "The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
-            system("svn remove --force "+file_path_destiny)
-            list_of_files_that_should_be_removed.push(file_path_destiny)                               
-          end 
-        end                                                    
-      end 
-=end  
-      
-             
+      end                         
       
       list_of_files_that_should_be_removed.each do |name|
         puts "file #{name} was removed"
@@ -119,21 +101,19 @@ While the revision of both origin and destiny repo are not the same:
           
       # Find all .svn in origin and delete them 
       puts "\n--> Removing .svn files from origin\n"
-      Find.find("/tmp/"+@svn_origin_name+"/") do |file_path_origin|                                    
-        if file_path_origin.include?(".svn")
-          puts "Removing .svn file from"+ file_path_origin
-          system("rm -Rf "+file_path_origin)         
-        end                                                    
+      Dir.glob("/tmp/#{@svn_origin_name}/**/.svn", File::FNM_DOTMATCH) do |file_path_origin|                                    
+        puts "Removing .svn file from"+ file_path_origin
+        system("rm -Rf #{file_path_origin}")         
       end   
       puts "\n--> End removing files from origin\n"
             
       #  Copy files that are in origin to destiny.
       puts "\n--> Copying files from origin to destiny\n"
-      Find.find("/tmp/"+@svn_origin_name+"/") do |file_path_origin|                                    
+      Dir.glob(File.join("/tmp/#{@svn_origin_name}", '**', '*')) do |file_path_origin|                                    
         if not file_path_origin.include?(".svn")
           file_path_destiny = file_path_origin.gsub(svn_origin_name, svn_destiny_name)        
           puts "Copying file from "+file_path_origin+"     to destiny: "+file_path_destiny
-          system("cp -Rf "+file_path_origin+" "+file_path_destiny)         
+          system("cp "+file_path_origin+" "+file_path_destiny)         
         end                                                    
       end                                            
       puts "\n--> End copying files\n" 
