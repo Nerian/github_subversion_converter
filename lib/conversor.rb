@@ -60,10 +60,15 @@ While the revision of both origin and destiny repo are not the same:
      def perform_conversion()                                                            
        
        svn_destiny_revision = destiny_repo_online_revision().to_i               
-
-       while(svn_destiny_revision <= @final_revision_that_you_want_to_mirror.to_i) 
+       continue = true
+       while(svn_destiny_revision <= @final_revision_that_you_want_to_mirror.to_i and continue) 
          puts "-------Current revision in destiny #{svn_destiny_revision.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
          perform_conversion_operations(svn_destiny_revision.to_s)
+         if not destiny_repo_online_revision.to_i == svn_destiny_revision            
+           puts "====Something went wrong, check the log===="
+           puts "destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{svn_destiny_revision}"
+           continue = false
+         end
          svn_destiny_revision = svn_destiny_revision + 1   
          puts "--------------"
        end
@@ -89,7 +94,7 @@ While the revision of both origin and destiny repo are not the same:
       
       list_of_files_that_should_be_removed.each do |name|
         puts "file #{name} was removed"
-        system("rm -Rf #{name}")
+        #system("rm -Rf #{name}")
       end                                                
       
       puts "\n--> Done removing files.\n"
