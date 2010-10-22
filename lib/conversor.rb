@@ -94,7 +94,7 @@ While the revision of both origin and destiny repo are not the same:
       
       list_of_files_that_should_be_removed.each do |name|
         puts "file #{name} was removed"
-        #system("rm -Rf #{name}")
+        system("rm -Rf #{name}")
       end                                                
       
       puts "\n--> Done removing files.\n"
@@ -118,10 +118,17 @@ While the revision of both origin and destiny repo are not the same:
           system("cp -Rf "+file_path_origin+" "+file_path_destiny)         
         end                                                    
       end                                            
-      puts "\n--> End copying files\n"
+      puts "\n--> End copying files\n" 
+      
+      puts "\n\n ======= Current origin schema ======\n"
+      list_directory("/tmp/#{svn_origin_name}") 
+      puts "\n\n ======= Current destiny schema ======\n" 
+      list_directory("/tmp/#{svn_destiny_name}")
+      
+      
                             
       puts "\n--> We start copy and write process "
-      system("cd /tmp/"+@svn_destiny_name +" && "+"svn add * --force"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      system("cd /tmp/"+@svn_destiny_name +" && "+"svn add * "+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
       puts "\n-->End copy and paste process\n" 
       
      end
@@ -144,6 +151,12 @@ While the revision of both origin and destiny repo are not the same:
          revision = /\d+/.match(revision_line).to_s             
          puts revision
          revision
+     end 
+     
+     def list_directory(directory)
+       Dir.glob("#{directory}/**") do |filename|
+         puts filename
+       end      
      end
           
    end
