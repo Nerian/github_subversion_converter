@@ -60,7 +60,7 @@ While the revision of both origin and destiny repo are not the same:
      def perform_conversion()                                                            
        
        svn_destiny_revision = destiny_repo_online_revision().to_i               
-     
+
        while(svn_destiny_revision <= @final_revision_that_you_want_to_mirror.to_i) 
          puts "-------Current revision in destiny #{svn_destiny_revision.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
          perform_conversion_operations(svn_destiny_revision.to_s)
@@ -72,17 +72,26 @@ While the revision of both origin and destiny repo are not the same:
      def perform_conversion_operations(revision_number_that_we_want_to_copy_to_destiny)  
       checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)                                                                    
       
-      # SVN Remove files that are in destiny but are not in origin
-      puts "\n--> Removing files from destiny that are not in origin\n"  
+      # SVN Remove files that are in destiny but are not in origin      
+      list_of_files_that_should_be_removed = []
+      puts "\n--> Removing files from destiny that are not in origin\n"        
       Find.find("/tmp/"+@svn_destiny_name+"/") do |file_path_destiny|                                    
         if not file_path_destiny.include?(".svn")
           file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
           if not File.exist?(file_path_origin)          
-            puts "The file "+file_path_destiny + " was removed in origin"
-            system("svn remove --force "+file_path_destiny)         
+            puts "The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
+            system("svn remove --force "+file_path_destiny)
+            list_of_files_that_should_be_removed.push(file_path_destiny)
+                               
           end 
         end                                                    
-      end 
+      end   
+      
+      list_of_files_that_should_be_removed.each do |name|
+        puts "file #{name} was removed"
+        system("rm -Rf #{name}")
+      end                                                
+      
       puts "\n--> Done removing files.\n"
           
       # Find all .svn in origin and delete them 
