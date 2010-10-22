@@ -15,5 +15,5 @@ Scenario Outline: Do conversion
   Scenarios: Origin has commit that arent on the destiny
 	| origin | name_origin | name_destiny | destiny |
 	| http://svn.github.com/Nerian/JPovray.git | origin | destiny | file:///tmp/Server_Repos/destiny |
-
+	| http://svn.github.com/Nerian/DPovray.git | origin | destiny | file:///tmp/Server_Repos/destiny |
   

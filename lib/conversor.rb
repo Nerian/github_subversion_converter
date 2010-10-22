@@ -57,13 +57,12 @@ While the revision of both origin and destiny repo are not the same:
   Update
   Repit with the next revision.
 =end
-     def perform_conversion()                                                     
-       
+     def perform_conversion()                                                            
        
        svn_destiny_revision = destiny_repo_online_revision().to_i               
      
        while(svn_destiny_revision <= @final_revision_that_you_want_to_mirror.to_i) 
-         puts "-------Current revision in destiny #{@svn_destiny_revision}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
+         puts "-------Current revision in destiny #{svn_destiny_revision.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
          perform_conversion_operations(svn_destiny_revision.to_s)
          svn_destiny_revision = svn_destiny_revision + 1   
          puts "--------------"
@@ -71,54 +70,45 @@ While the revision of both origin and destiny repo are not the same:
      end                                
            
      def perform_conversion_operations(revision_number_that_we_want_to_copy_to_destiny)  
-      checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)                                                  
-            
+      checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)                                                                    
       
-      
-      # SVN Remove files that are in destiny but are not in origin  
+      # SVN Remove files that are in destiny but are not in origin
+      puts "\n--> Removing files from destiny that are not in origin\n"  
       Find.find("/tmp/"+@svn_destiny_name+"/") do |file_path_destiny|                                    
         if not file_path_destiny.include?(".svn")
           file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
           if not File.exist?(file_path_origin)          
-            puts "El fichero "+file_path_destiny + " fue borrado"
+            puts "The file "+file_path_destiny + " was removed in origin"
             system("svn remove --force "+file_path_destiny)         
           end 
         end                                                    
-      end
+      end 
+      puts "\n--> Done removing files.\n"
           
-      # Find all .svn in origin and delete them
+      # Find all .svn in origin and delete them 
+      puts "\n--> Removing .svn files from origin\n"
       Find.find("/tmp/"+@svn_origin_name+"/") do |file_path_origin|                                    
         if file_path_origin.include?(".svn")
           puts "Removing .svn file from"+ file_path_origin
           system("rm -Rf "+file_path_origin)         
         end                                                    
-      end
+      end   
+      puts "\n--> End removing files from origin\n"
             
       #  Copy files that are in origin to destiny.
+      puts "\n--> Copying files from origin to destiny\n"
       Find.find("/tmp/"+@svn_origin_name+"/") do |file_path_origin|                                    
         if not file_path_origin.include?(".svn")
           file_path_destiny = file_path_origin.gsub(svn_origin_name, svn_destiny_name)        
           puts "Copying file from "+file_path_origin+"     to destiny: "+file_path_destiny
           system("cp -Rf "+file_path_origin+" "+file_path_destiny)         
         end                                                    
-      end
-           
-      #system("rm -Rf /tmp/"+@svn_origin_name+"/.svn")      
-      #system("rm -Rf /tmp/.svn")
-      #system("cp -Rf /tmp/"+@svn_destiny_name+"/.svn /tmp/.svn" )
-      #system("rm -Rf /tmp/"+@svn_destiny_name+"/")      
-      #system("cp -Rf /tmp/"+@svn_origin_name+"/ /tmp/"+@svn_destiny_name+"/")        
-      #system("cp -Rf /tmp/.svn /tmp/"+@svn_destiny_name+"/")
-      
-      
-      
-      puts "\n We start copy and write process "
-      system("cd /tmp/"+@svn_destiny_name +" && "+"svn add *"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
-      puts " End copy and paste process"
-      #system("cd /tmp/"+@svn_destiny_name +""+""+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
-      #system("svn add /tmp/"+@svn_destiny_name)
-      #system("svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'")
-      #system("svn update")      
+      end                                            
+      puts "\n--> End copying files\n"
+                            
+      puts "\n--> We start copy and write process "
+      system("cd /tmp/"+@svn_destiny_name +" && "+"svn add * --force"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      puts "\n-->End copy and paste process\n" 
       
      end
 
@@ -136,8 +126,8 @@ While the revision of both origin and destiny repo are not the same:
          File.open("/tmp/svninfo","r").each do |line|
            string_file += line
          end                                     
-         revision_line = /Revision: \d/.match(string_file).to_s         
-         revision = /\d/.match(revision_line).to_s             
+         revision_line = /Revision: \d+/.match(string_file).to_s         
+         revision = /\d+/.match(revision_line).to_s             
          puts revision
          revision
      end
