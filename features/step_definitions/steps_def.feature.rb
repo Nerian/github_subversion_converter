@@ -45,7 +45,7 @@ When /^I perform de conversion process$/ do
 end
 
 Then /^both repos should have the same revision$/ do
-  @conversor.destiny_repo_online_revision.should == 6  
+  @conversor.destiny_repo_online_revision.should == '6'  
 end
 
 Then /^I should see a message "([^"]*)"$/ do |message|
