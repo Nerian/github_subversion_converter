@@ -106,16 +106,26 @@ While the revision of both origin and destiny repo are not the same:
         system("rm -Rf #{file_path_origin}")         
       end   
       puts "\n--> End removing files from origin\n"
+      
+      #Create 
+      
+      
+      
             
       #  Copy files that are in origin to destiny.
-      puts "\n--> Copying files from origin to destiny\n"
-      Dir.glob(File.join("/tmp/#{@svn_origin_name}", '**', '*')) do |file_path_origin|                                    
-        if not file_path_origin.include?(".svn")
+      puts "\n--> Copying files from origin to destiny\n"        
+      Dir.glob(File.join("/tmp/#{@svn_origin_name}", '**', '*')) do |file_path_origin|                                            
+        if not file_path_origin.include?(".svn")                                                
           file_path_destiny = file_path_origin.gsub(svn_origin_name, svn_destiny_name)        
           puts "Copying file from "+file_path_origin+"     to destiny: "+file_path_destiny
-          system("cp "+file_path_origin+" "+file_path_destiny)         
+          if File.directory?(file_path_origin)
+            system("mkdir #{file_path_destiny}")
+          else
+            system("cp "+file_path_origin+" "+file_path_destiny)         
+          end
         end                                                    
-      end                                            
+      end                            
+                 
       puts "\n--> End copying files\n" 
       
       puts "\n\n ======= Current origin schema ======\n"
