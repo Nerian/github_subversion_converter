@@ -9,7 +9,7 @@ It can keep transferring commits from origin to destiny after the initial transf
 
 What GitSC does is to commit changes one by one from the origin to destiny. In such process it performs some validations to deal with GitHub SVN little nuances, namely Phantom commits ( I created a fancy word, yeah! ^_^ ). So it is VERY slow. Transferring 50 commits can take 5 min. 
 
-So if you just want to clone real SVN repos, not hosted at GitHub, I recommend you do check [svnsync](http://svnbook.red-bean.com/en/1.5/svn.ref.svnsync.html SVNSYNC). 
+So if you just want to clone real SVN repos, not hosted at GitHub, I recommend you to check [svnsync](http://svnbook.red-bean.com/en/1.5/svn.ref.svnsync.html SVNSYNC). 
  
 Current Status
 ====================================
