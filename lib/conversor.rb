@@ -71,7 +71,7 @@ While the revision of both origin and destiny repo are not the same:
            puts "destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{revision_that_we_want_the_destiny_to_be_in}"
            continue = false
          end           
-         svn_destiny_revision = svn_destiny_revision + 1 
+         revision_that_we_want_the_destiny_to_be_in = revision_that_we_want_the_destiny_to_be_in + 1 
          puts "--------------"
        end
      end                                
