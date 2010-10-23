@@ -59,17 +59,19 @@ While the revision of both origin and destiny repo are not the same:
 =end
      def perform_conversion()                                                            
        
-       svn_destiny_revision = destiny_repo_online_revision().to_i               
+       revision_that_we_want_the_destiny_to_be_in = destiny_repo_online_revision().to_i + 1                
+       
        continue = true
-       while(svn_destiny_revision <= @final_revision_that_you_want_to_mirror.to_i and continue) 
-         puts "-------Trying to apply revision #{svn_destiny_revision.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
-         perform_conversion_operations(svn_destiny_revision.to_s)
-         if not destiny_repo_online_revision.to_i == svn_destiny_revision            
+       while(revision_that_we_want_the_destiny_to_be_in <= @final_revision_that_you_want_to_mirror.to_i and continue) 
+         puts "-------Trying to apply revision #{revision_that_we_want_the_destiny_to_be_in.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
+         perform_conversion_operations(revision_that_we_want_the_destiny_to_be_in.to_s)
+         
+         if not destiny_repo_online_revision.to_i == revision_that_we_want_the_destiny_to_be_in            
            puts "====Something went wrong, check the log===="
-           puts "destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{svn_destiny_revision}"
+           puts "destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{revision_that_we_want_the_destiny_to_be_in}"
            continue = false
-         end
-         svn_destiny_revision = svn_destiny_revision + 1   
+         end           
+         svn_destiny_revision = svn_destiny_revision + 1 
          puts "--------------"
        end
      end                                
@@ -105,12 +107,7 @@ While the revision of both origin and destiny repo are not the same:
         puts "Removing .svn file from"+ file_path_origin
         system("rm -Rf #{file_path_origin}")         
       end   
-      puts "\n--> End removing files from origin\n"
-      
-      #Create 
-      
-      
-      
+      puts "\n--> End removing files from origin\n"                        
             
       #  Copy files that are in origin to destiny.
       puts "\n--> Copying files from origin to destiny\n"        
@@ -134,9 +131,32 @@ While the revision of both origin and destiny repo are not the same:
       list_directory("/tmp/#{svn_destiny_name}")                 
                             
       puts "\n--> We start copy and write process "
-      system("cd /tmp/"+@svn_destiny_name +" && "+"svn add * "+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      
+      
+      
+      # Check if it is a phantom commit. Phantom commits are commit that had just changes to .gitignore file. 
+      # Github removes that file from the svn revision, so we are left with two subsequent revisions that are exactly 
+      # the identical. SVN commit with changes won't do anything. 
+      # To evade this problem, we make a fake file, .github file, so we have something to commit. 
+      # It will be erased in the next commit, so it won't cause any problem.  
+      
+      # system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update") 
+      if no_changes_to_update?()
+        system("touch /tmp/#{@svn_destiny_name}/github_phantom_file")
+      end
+        
+      system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add "+ "&& svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
       puts "\n-->End copy and paste process\n" 
       
+     end
+     
+     def no_changes_to_update?()
+      system("cd /tmp/#{@svn_destiny_name} && svn status >/tmp/svninfo2")
+      if File.zero?("/tmp/svninfo2")
+        return true
+      else
+        return false
+      end                       
      end
 
      def origin_repo_online_revision()
