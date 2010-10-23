@@ -63,16 +63,16 @@ While the revision of both origin and destiny repo are not the same:
        
        continue = true
        while(revision_that_we_want_the_destiny_to_be_in <= @final_revision_that_you_want_to_mirror.to_i and continue) 
-         puts "-------Trying to apply revision #{revision_that_we_want_the_destiny_to_be_in.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------"         
+         puts "\n\n-------Trying to apply revision #{revision_that_we_want_the_destiny_to_be_in.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------\n"         
          perform_conversion_operations(revision_that_we_want_the_destiny_to_be_in.to_s)
          
          if not destiny_repo_online_revision.to_i == revision_that_we_want_the_destiny_to_be_in            
            puts "====Something went wrong, check the log===="
-           puts "destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{revision_that_we_want_the_destiny_to_be_in}"
+           puts "current destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{revision_that_we_want_the_destiny_to_be_in}"
            continue = false
          end           
          revision_that_we_want_the_destiny_to_be_in = revision_that_we_want_the_destiny_to_be_in + 1 
-         puts "--------------"
+         puts "\n--------------\n"
        end
      end                                
            
@@ -81,6 +81,7 @@ While the revision of both origin and destiny repo are not the same:
       
       # SVN Remove files that are in destiny but are not in origin 
       list_of_files_that_should_be_removed = []
+      puts "\n--> Removing files that exist in destiny but are not in origin, which means they were removed and should be scheduled svn rm 'file'\n"
       Dir.glob(File.join("/tmp/#{@svn_destiny_name}", '**', '*')) do |file_path_destiny|
         if not file_path_destiny.include?(".svn")
           file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
@@ -89,6 +90,7 @@ While the revision of both origin and destiny repo are not the same:
             #Schedule deletion by svn 
             puts "The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
             system("svn remove "+file_path_destiny)
+            puts "done removing that file\n"
             list_of_files_that_should_be_removed.push(file_path_destiny)
           end          
         end
@@ -117,23 +119,20 @@ While the revision of both origin and destiny repo are not the same:
           puts "Copying file from "+file_path_origin+"     to destiny: "+file_path_destiny
           if File.directory?(file_path_origin)
             system("mkdir #{file_path_destiny}")
+            puts "Done creating directory #{file_path_destiny} \n"
           else
-            system("cp "+file_path_origin+" "+file_path_destiny)         
+            system("cp #{file_path_origin} #{file_path_destiny}")  
+            puts "Done copying file to #{file_path_destiny} \n"       
           end
         end                                                    
-      end                            
-                 
+      end                                             
       puts "\n--> End copying files\n" 
       
       puts "\n\n ======= Current origin schema ======\n"
       list_directory("/tmp/#{svn_origin_name}")
       puts "\n\n ======= Current destiny schema ======\n" 
       list_directory("/tmp/#{svn_destiny_name}")                 
-                            
-      puts "\n--> We start copy and write process "
-      
-      
-      
+                                 
       # Check if it is a phantom commit. Phantom commits are commit that had just changes to .gitignore file. 
       # Github removes that file from the svn revision, so we are left with two subsequent revisions that are exactly 
       # the identical. SVN commit with changes won't do anything. 
@@ -142,11 +141,13 @@ While the revision of both origin and destiny repo are not the same:
       
       # system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update") 
       if no_changes_to_update?()
+        puts "--> This is a phantom commit. This means that the previous commit and this have exactly the same files. It is not possible to do a commit that doesn't change anything. This either means that either there was an svn error, check the current directory scheme of origin and destiny, or that you just commited a .gitignore file. So we are adding a file 'github_phantom_file' to the repo. This happens when you are using Git and push just a change to .gitignore. Github removes that kind of file, but still make it a new revision."
         system("touch /tmp/#{@svn_destiny_name}/github_phantom_file")
       end
-        
+
+      puts "\n--> We start copy and write process\n"         
       system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add "+ "&& svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
-      puts "\n-->End copy and paste process\n" 
+      puts "\n-->End copy and paste process\n\n" 
       
      end
      
@@ -175,8 +176,6 @@ While the revision of both origin and destiny repo are not the same:
          end                                     
          revision_line = /Revision: \d+/.match(string_file).to_s         
          revision = /\d+/.match(revision_line).to_s             
-         puts revision
-         revision
      end 
      
      def list_directory(directory)       
