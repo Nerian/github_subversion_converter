@@ -15,16 +15,18 @@ module Conversor
        @svn_origin_name = "origin"
        @svn_destiny_name = "destiny"
        @svn_address_origin = svn_address_origin
-       @svn_address_destiny = svn_address_destiny
-                        
+       @svn_address_destiny = svn_address_destiny 
+       
        checkout_origin_repo()
+       checkout_destiny_repo()
+                       
        @final_revision_that_you_want_to_mirror = origin_repo_online_revision()          
      end                   
      
      def checkout_origin_repo(revision=nil)
-      if(File.exist?("/tmp/"+@svn_origin_name))
-        system("rm -Rf /tmp/"+@svn_origin_name) 
-      end                        
+      #if(File.exist?("/tmp/"+@svn_origin_name))
+      system("rm -Rf /tmp/"+@svn_origin_name) 
+      #end                        
       if not revision.nil?
         puts "checking out repo at "+@svn_address_origin+ " in /tmp/"+@svn_origin_name + " revision "+revision
         system("svn checkout "+"-r "+ revision +" "+@svn_address_origin + " /tmp/"+@svn_origin_name)
@@ -50,6 +52,10 @@ module Conversor
                                                                   
 =begin rdoc
 The algorithm do exactly this:
+
+Pick up what is the last revision in destiny.
+If that revision plus one is below the origin last revision, then it means we have commits to transfer.
+
 While the revision of both origin and destiny repo are not the same:
   Checkout the origin repo, at destiny revision number.
   Dump current working directory of origin into destiny
@@ -57,22 +63,30 @@ While the revision of both origin and destiny repo are not the same:
   Update
   Repit with the next revision.
 =end
-     def perform_conversion()                                                            
+     def perform_conversion()
        
+       # The revision that we want the destiny repo to have is the last revision in origin.
        revision_that_we_want_the_destiny_to_be_in = destiny_repo_online_revision().to_i + 1                
        
        continue = true
+       
+       # Until the destiny online repo last revision is not the same as the last revision in origin
+       # we will keep making commits.
        while(revision_that_we_want_the_destiny_to_be_in <= @final_revision_that_you_want_to_mirror.to_i and continue) 
-         puts "\n\n-------Trying to apply revision #{revision_that_we_want_the_destiny_to_be_in.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} -------\n"         
-         perform_conversion_operations(revision_that_we_want_the_destiny_to_be_in.to_s)
          
+         # Perform the neccesary steps to transfer that specific commit from origin to destiny.
+         puts "\n\n ====== Trying to apply revision #{revision_that_we_want_the_destiny_to_be_in.to_s}, final revision: #{@final_revision_that_you_want_to_mirror} ======\n\n"                  
+         perform_conversion_operations(revision_that_we_want_the_destiny_to_be_in.to_s)
+
+         # If the destiny online repo doesnt have the revision we wanted to apply, then something went wrong.
          if not destiny_repo_online_revision.to_i == revision_that_we_want_the_destiny_to_be_in            
-           puts "====Something went wrong, check the log===="
-           puts "current destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{revision_that_we_want_the_destiny_to_be_in}"
-           continue = false
-         end           
+           puts "======>>> Something went wrong, check the log <<<======"
+           puts "==> current destiny_repo_online_revision: #{destiny_repo_online_revision} svn_destiny_revision: #{revision_that_we_want_the_destiny_to_be_in}"
+           continue = false                    
+         else               
+           puts "\n ====== Done applying revision #{revision_that_we_want_the_destiny_to_be_in.to_s}  ======\n"
+         end
          revision_that_we_want_the_destiny_to_be_in = revision_that_we_want_the_destiny_to_be_in + 1 
-         puts "\n--------------\n"
        end
      end
      
@@ -80,64 +94,61 @@ While the revision of both origin and destiny repo are not the same:
      def remove_files_from_destiny_repo_that_were_removed_in_origin_repo()
        # SVN Remove files that are in destiny but are not in origin 
        list_of_files_that_should_be_removed = []
-       puts "\n--> Removing files that exist in destiny but are not in origin, which means they were removed and should be scheduled svn rm 'file'\n"
+       puts "\n\n====== Removing files that exist in destiny but are not in origin, which means they were removed and should be scheduled svn rm 'file' ======\n"
        Dir.glob(File.join("/tmp/#{@svn_destiny_name}", '**', '*')) do |file_path_destiny|
          if not file_path_destiny.include?(".svn")
            file_path_origin = file_path_destiny.gsub(svn_destiny_name, svn_origin_name)
            #Check if it doesnt exist in origin
            if not File.exist?(file_path_origin)
              #Schedule deletion by svn 
-             puts "The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
+             puts "==> The file #{file_path_destiny} does not exist in #{file_path_origin} and so is scheduled to removal in svn"
              system("svn remove "+file_path_destiny)
-             puts "done removing that file\n"
              list_of_files_that_should_be_removed.push(file_path_destiny)
            end          
          end
        end                         
 
        list_of_files_that_should_be_removed.each do |name|
-         puts "file #{name} was removed"
          system("rm -Rf #{name}")
-       end                                                
-
-       puts "\n--> Done removing files.\n"      
+       end
+       puts "\n====== Done Removing files  ======\n"                                                
      end
      
      def remove_SVN_files_from_origin() 
        # Find all .svn in origin and delete them 
-       puts "\n--> Removing .svn files from origin\n"
+       puts "\n\n====== Removing .svn files from origin ======\n"
        Dir.glob("/tmp/#{@svn_origin_name}/**/.svn", File::FNM_DOTMATCH) do |file_path_origin|                                    
-         puts "Removing .svn file from"+ file_path_origin
+         puts "==>Removing .svn file from"+ file_path_origin
          system("rm -Rf #{file_path_origin}")         
-       end   
-       puts "\n--> End removing files from origin\n"      
+       end
+       puts "\n====== Done Removing .svn files ======\n"           
      end 
      
      
      def copy_files_from_origin_to_destiny()
        #  Copy files that are in origin to destiny.
-       puts "\n--> Copying files from origin to destiny\n"        
+       puts "\n\n====== Copying files from origin to destiny ======\n"        
        Dir.glob(File.join("/tmp/#{@svn_origin_name}", '**', '*')) do |file_path_origin|                                            
          if not file_path_origin.include?(".svn")                                                
            file_path_destiny = file_path_origin.gsub(svn_origin_name, svn_destiny_name)        
-           puts "Copying file from "+file_path_origin+"     to destiny: "+file_path_destiny
+           puts "==> Copying file from "+file_path_origin+"     to destiny: "+file_path_destiny
            if File.directory?(file_path_origin)
              system("mkdir #{file_path_destiny}")
-             puts "Done creating directory #{file_path_destiny} \n"
+             puts "=> Done creating directory #{file_path_destiny} \n"
            else
              system("cp #{file_path_origin} #{file_path_destiny}")  
-             puts "Done copying file to #{file_path_destiny} \n"       
+             puts "=> Done copying file to #{file_path_destiny} \n"       
            end
          end                                                    
-       end                                             
-       puts "\n--> End copying files\n"             
+       end
+       puts "\n====== Done Copying files from origin to destiny ======\n"                                                          
      end
      
      
      def check_if_this_is_a_phantom_commit()               
        # system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add"+" && svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update") 
        if no_changes_to_update?()
-         puts "--> This is a phantom commit. This means that the previous commit and this have exactly the same files. It is not possible to do a commit that doesn't change anything. This either means that either there was an svn error, check the current directory scheme of origin and destiny, or that you just commited a .gitignore file. So we are adding a file 'github_phantom_file' to the repo. This happens when you are using Git and push just a change to .gitignore. Github removes that kind of file, but still make it a new revision."
+         puts "==> This is a phantom commit. This means that the previous commit and this have exactly the same files. It is not possible to do a commit that doesn't change anything. This either means that either there was an svn error, check the current directory scheme of origin and destiny, or that you just commited a .gitignore file. So we are adding a file 'github_phantom_file' to the repo. This happens when you are using Git and push just a change to .gitignore. Github removes that kind of file, but still make it a new revision."
          system("touch /tmp/#{@svn_destiny_name}/github_phantom_file")
        end       
       
@@ -164,9 +175,11 @@ While the revision of both origin and destiny repo are not the same:
       # Show the current directory layout in origin and destiny
       # If they are the same, it means the we have a perfect copy. 
       puts "\n\n ======= Current origin schema ======\n"
-      list_directory("/tmp/#{svn_origin_name}")           
+      list_directory("/tmp/#{svn_origin_name}")
+      puts "\n-----------"           
       puts "\n\n ======= Current destiny schema ======\n" 
       list_directory("/tmp/#{svn_destiny_name}")                 
+      puts "\n-----------"
                                                           
       # Check if it is a phantom commit. Phantom commits are commit that had just changes to .gitignore file. 
       # Github removes that file from the svn revision, so we are left with two subsequent revisions that are exactly 
@@ -177,9 +190,9 @@ While the revision of both origin and destiny repo are not the same:
                       
       # The final stage is to 'svn add *' everything and commit to destiny online repo. If this goes well, we 
       # would have succefully commited the intended revision.
-      puts "\n--> We start copy and write process\n"         
+      puts "\n ====== Start svn add * , commit, and update ======\n"         
       system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add "+ "&& svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
-      puts "\n-->End copy and paste process\n\n" 
+      puts "\n ====== End svn add * , commit, and update ======\n" 
       
      end
      
