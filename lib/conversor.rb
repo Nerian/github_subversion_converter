@@ -13,9 +13,10 @@ module Conversor
      def initialize(output=STDOUT, svn_address_origin, svn_address_destiny)
        @output = output    
        @svn_origin_name = "origin"
-       @svn_destiny_name = "destiny"
+       @svn_destiny_name = "destiny"       
        @svn_address_origin = svn_address_origin
        @svn_address_destiny = svn_address_destiny 
+       @log_file_of_origin = "/tmp/log_file_of_origin"
        
        checkout_origin_repo()
        checkout_destiny_repo()
@@ -157,7 +158,9 @@ While the revision of both origin and destiny repo are not the same:
      def perform_conversion_operations(revision_number_that_we_want_to_copy_to_destiny)  
        
       # Checkout a temporal repo that will contain the changes –– revision – that we want to apply to destiny
-      checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)                                                                    
+      checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)
+      
+      author = get_author_name(revision_number_that_we_want_to_copy_to_destiny)                                                                     
                           
       # In the event that the next revision removed files, we should 'svn rm name' before doing the copy.
       remove_files_from_destiny_repo_that_were_removed_in_origin_repo()                                  
@@ -190,8 +193,8 @@ While the revision of both origin and destiny repo are not the same:
                       
       # The final stage is to 'svn add *' everything and commit to destiny online repo. If this goes well, we 
       # would have succefully commited the intended revision.
-      puts "\n ====== Start svn add * , commit, and update ======\n"         
-      system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add "+ "&& svn commit -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      puts "\n ====== Start svn add * , commit, and update. Using username: #{author} ======\n"         
+      system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add "+ "&& svn commit --username #{author} -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
       puts "\n ====== End svn add * , commit, and update ======\n" 
       
      end
@@ -225,6 +228,18 @@ While the revision of both origin and destiny repo are not the same:
      
      def list_directory(directory)       
        Dir.glob( File.join(directory, '**', '*') ) { |file| puts file }   
+     end
+     
+     def get_author_name(commit_number)
+      system("cd /tmp/#{@svn_origin_name} && svn log > #{@log_file_of_origin}")
+      string_file = ""
+      File.open("#{@log_file_of_origin}","r").each do |line|
+         string_file += line
+       end 
+       
+      line = /^[r]#{commit_number}+ [|] .*/.match(string_file).to_s
+      line_array = line.split(/ /)
+      author = line_array[2]      
      end
           
    end
