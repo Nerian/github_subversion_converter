@@ -13,11 +13,11 @@ module Conversor
       
      def initialize(output=STDOUT, svn_address_origin, svn_address_destiny)
        @output = output    
-       @svn_origin_name = "origin"
-       @svn_destiny_name = "destiny"       
-       @svn_address_origin = svn_address_origin
-       @svn_address_destiny = svn_address_destiny 
-       @log_file_of_origin = "/tmp/log_file_of_origin.xml"
+       @svn_origin_name = "origin"  #Just the name, not the file path.
+       @svn_destiny_name = "destiny" #Just the name, not the file path.       
+       @svn_address_origin = svn_address_origin #This is a complete PATH
+       @svn_address_destiny = svn_address_destiny #This is a complete PATH 
+       @log_file_of_origin = "/tmp/log_file_of_origin.xml" 
        
        checkout_origin_repo()
        checkout_destiny_repo()
@@ -160,8 +160,10 @@ While the revision of both origin and destiny repo are not the same:
        
       # Checkout a temporal repo that will contain the changes –– revision – that we want to apply to destiny
       checkout_origin_repo(revision_number_that_we_want_to_copy_to_destiny)
-      
-      author = get_author_name(revision_number_that_we_want_to_copy_to_destiny)                                                                     
+                                                                           
+      # Get the information about the commit. We use svn log in origin to get the info.
+      author = get_author_name(revision_number_that_we_want_to_copy_to_destiny)
+      commit_message = get_commit_message(revision_number_that_we_want_to_copy_to_destiny)                                                                     
                           
       # In the event that the next revision removed files, we should 'svn rm name' before doing the copy.
       remove_files_from_destiny_repo_that_were_removed_in_origin_repo()                                  
@@ -194,8 +196,10 @@ While the revision of both origin and destiny repo are not the same:
                       
       # The final stage is to 'svn add *' everything and commit to destiny online repo. If this goes well, we 
       # would have succefully commited the intended revision.
-      puts "\n ====== Start svn add * , commit, and update. Using username: #{author} ======\n"         
-      system("cd /tmp/"+@svn_destiny_name +" && "+"svn status | grep '^\?' | awk '{print $2}' | xargs svn add "+ "&& svn commit --username #{author} -m '"+revision_number_that_we_want_to_copy_to_destiny+"'"+ " && "+"svn update")
+      puts "\n ====== Start svn add * , commit, and update. Using username: #{author} ======\n" 
+      puts "Commit message: \n-----------\n#{commit_message}\n-----------"        
+      system("cd /tmp/#{@svn_destiny_name} && svn status | grep '^\?' | awk '{print $2}' | xargs svn add && svn commit --force-log --username #{author} -m '#{commit_message}' && svn update")
+      
       puts "\n ====== End svn add * , commit, and update ======\n" 
       
      end
@@ -236,6 +240,13 @@ While the revision of both origin and destiny repo are not the same:
       file = File.open("#{@log_file_of_origin}", "r")
       log = REXML::Document.new(file)                                
       author = log.root.elements[1].elements["author"].text      
+     end
+     
+     def get_commit_message(commit_number)
+       system("cd /tmp/#{@svn_origin_name} && svn log --xml -r #{commit_number} >#{@log_file_of_origin}")      
+       file = File.open("#{@log_file_of_origin}", "r")
+       log = REXML::Document.new(file)                                
+       msg = log.root.elements[1].elements["msg"].text
      end                              
    end
 end
