@@ -20,7 +20,7 @@ Current Status
 * Transferring full GitHub repo to another SVN repo that already have commits | it's done!
 * Make commits retain the author name | it's done!
 * Make commits retain the commit message | it's done!
-* Create command line tool so GitSC can be used |  On it!  
+* Create command line tool so GitSC can be used |  it's done!  
                     
 
 * Make commits have the right date it is not done. 
@@ -36,7 +36,7 @@ Currently I just have the ruby class and cucumber tests. So it is not ready for 
 
 But the expected way of using is:
 
-	GitSC --origin-repo *address* --destiny-repo *address*  
+	GitSC --origin *address* --destiny *address*  
 	
 Take note, if two persons do this a the same time you could end with many duplicated commits. So I recommend that if you are working with other people your team designate just one person to do it. 	
 
