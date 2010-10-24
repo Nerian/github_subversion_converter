@@ -1,4 +1,5 @@
 require 'find'
+require "rexml/document"
 
 module Conversor
    class Conversor
@@ -8,7 +9,7 @@ module Conversor
      # svn_address_destiny is the online address of the svn repo that we want to mirror to  
      # svn_origin_name is the name of the checkout origin repo.
      # svn_destiny_name is the name of the checkout destiny repo.
-     attr_accessor :output, :svn_address_origin, :svn_address_destiny, :svn_origin_name, :svn_destiny_name, :final_revision_that_you_want_to_mirror
+     attr_accessor :output, :svn_address_origin, :svn_address_destiny, :svn_origin_name, :svn_destiny_name, :final_revision_that_you_want_to_mirror, :log_file_of_origin
       
      def initialize(output=STDOUT, svn_address_origin, svn_address_destiny)
        @output = output    
@@ -16,7 +17,7 @@ module Conversor
        @svn_destiny_name = "destiny"       
        @svn_address_origin = svn_address_origin
        @svn_address_destiny = svn_address_destiny 
-       @log_file_of_origin = "/tmp/log_file_of_origin"
+       @log_file_of_origin = "/tmp/log_file_of_origin.xml"
        
        checkout_origin_repo()
        checkout_destiny_repo()
@@ -230,17 +231,11 @@ While the revision of both origin and destiny repo are not the same:
        Dir.glob( File.join(directory, '**', '*') ) { |file| puts file }   
      end
      
-     def get_author_name(commit_number)
-      system("cd /tmp/#{@svn_origin_name} && svn log > #{@log_file_of_origin}")
-      string_file = ""
-      File.open("#{@log_file_of_origin}","r").each do |line|
-         string_file += line
-       end 
-       
-      line = /^[r]#{commit_number}+ [|] .*/.match(string_file).to_s
-      line_array = line.split(/ /)
-      author = line_array[2]      
-     end
-          
+     def get_author_name(commit_number)      
+      system("cd /tmp/#{@svn_origin_name} && svn log --xml -r #{commit_number} >#{@log_file_of_origin}")      
+      file = File.open("#{@log_file_of_origin}", "r")
+      log = REXML::Document.new(file)                                
+      author = log.root.elements[1].elements["author"].text      
+     end                              
    end
 end
