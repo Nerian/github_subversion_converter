@@ -19,6 +19,7 @@ module Conversor
        @svn_address_destiny = svn_address_destiny #This is a complete PATH 
        @log_file_of_origin = "/tmp/log_file_of_origin.xml" 
        
+       
        checkout_origin_repo()
        checkout_destiny_repo()
                        
@@ -26,9 +27,9 @@ module Conversor
      end                   
      
      def checkout_origin_repo(revision=nil)
-      #if(File.exist?("/tmp/"+@svn_origin_name))
-      system("rm -Rf /tmp/"+@svn_origin_name) 
-      #end                        
+      system("rm -Rf /tmp/"+@svn_origin_name)                    
+      
+      puts "==> Checking out SVN origin at: #{@svn_address_origin} \n" 
       if not revision.nil?
         puts "checking out repo at "+@svn_address_origin+ " in /tmp/"+@svn_origin_name + " revision "+revision
         system("svn checkout "+"-r "+ revision +" "+@svn_address_origin + " /tmp/"+@svn_origin_name)
@@ -36,12 +37,13 @@ module Conversor
         puts "checking out repo at "+@svn_address_origin+ " in /tmp/"+@svn_origin_name                                                                                         
         system("svn checkout "+@svn_address_origin + " /tmp/"+@svn_origin_name)
       end
-      @output.puts "SVN origin Checkout complete"      
+     
      end                                       
      
      def checkout_destiny_repo(revision=nil)       
        system("rm -Rf /tmp/"+@svn_destiny_name) 
        
+       puts "==> Checking out SVN destiny at: #{@svn_address_destiny} \n"
        if not revision.nil?                                                                           
          puts "checking out repo at "+@svn_address_destiny+ " in /tmp/"+@svn_destiny_name+ " revision "+revision 
          system("svn checkout "+"-r "+revision+" "+ @svn_address_destiny + " /tmp/"+@svn_destiny_name)
@@ -49,7 +51,6 @@ module Conversor
          puts "checking out repo at "+@svn_address_destiny+ " in /tmp/"+@svn_destiny_name
          system("svn checkout "+@svn_address_destiny + " /tmp/"+@svn_destiny_name)
        end
-       @output.puts "SVN destiny Checkout complete"
      end
                                                                   
 =begin rdoc
