@@ -16,10 +16,11 @@ So if you just want to clone real SVN repos, not hosted at GitHub, I recommend y
 Current Status
 ====================================
 
-* Transferring full GitHub repo to another SVN repo works. | it's done
-* Transferring full GitHub repo to another SVN repo that already have commits | it's done
-* Make commits retain the author name | it's done.
-* Make commits retain the commit message | it's done.  
+* Transferring full GitHub repo to another SVN repo works. | it's done!
+* Transferring full GitHub repo to another SVN repo that already have commits | it's done!
+* Make commits retain the author name | it's done!
+* Make commits retain the commit message | it's done!
+* Create command line tool so GitSC can be used |  On it!  
                     
 
 * Make commits have the right date it is not done. 
