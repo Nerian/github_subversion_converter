@@ -14,10 +14,11 @@ So if you just want to clone real SVN repos, not hosted at GitHub, I recommend y
 Current Status
 ====================================
 
-* Transferring full GitHub repo to another SVN repo works
+* Transferring full GitHub repo to another SVN repo works.
 * Transferring full GitHub repo to another SVN repo that already have commits seems to work, but I want to write more tests.
-* Make commits retain the author name it's done
-* Make commits retain the commit message it is not implemented yet.
+* Make commits retain the author name it's done.
+* Make commits retain the commit message it's done.  
+
 * Make commits have the right date it is not done.
 
 
