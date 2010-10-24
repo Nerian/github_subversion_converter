@@ -9,17 +9,24 @@ It can keep transferring commits from origin to destiny after the initial transf
 
 What GitSC does is to commit changes one by one from the origin to destiny. In such process it performs some validations to deal with GitHub SVN little nuances, namely Phantom commits ( I created a fancy word, yeah! ^_^ ). So it is VERY slow. Transferring 50 commits can take 5 min. 
 
+A Phantom commit happens when the previous commit is exactly the same as the commit we are trying to commit. SVN won't allow such a commit so it won't never happen on a real SVN server. But as I said, GitHub does a little magic behind the scene and it removes the .gitignore files. Many times you just make a commit whose only change was the .gitignore file. In such case, you have a phantom commit in svn fake repo. GitCS it is capable of dealing with this, rest assured.
+
 So if you just want to clone real SVN repos, not hosted at GitHub, I recommend you to check [svnsync](http://svnbook.red-bean.com/en/1.5/svn.ref.svnsync.html SVNSYNC). 
  
 Current Status
 ====================================
 
-* Transferring full GitHub repo to another SVN repo works.
-* Transferring full GitHub repo to another SVN repo that already have commits seems to work, but I want to write more tests.
-* Make commits retain the author name it's done.
-* Make commits retain the commit message it's done.  
+* Transferring full GitHub repo to another SVN repo works. | it's done
+* Transferring full GitHub repo to another SVN repo that already have commits | it's done
+* Make commits retain the author name | it's done.
+* Make commits retain the commit message | it's done.  
+                    
 
-* Make commits have the right date it is not done.
+* Make commits have the right date it is not done. 
+
+The last feature requires modifying hooks script on the server side, which sucks and I don't really need it. So chances are that I won't add this feature. Feel free to fork the project and do it yourself, I will accept a pull request. 
+
+The line you have to touch in on the method "perform\_conversion\_operations" inside "lib/conversor.rb". The last lines of that method call the method "update\_destiny\_server\_commit\_date\_to\_origin\_commit\_date()". You just have to implement that.
 
 
 How to Use
@@ -28,7 +35,9 @@ Currently I just have the ruby class and cucumber tests. So it is not ready for 
 
 But the expected way of using is:
 
-	GitSC --origin-repo *address* --destiny-repo *address*
+	GitSC --origin-repo *address* --destiny-repo *address*  
+	
+Take note, if two persons do this a the same time you could end with many duplicated commits. So I recommend that if you are working with other people your team designate just one person to do it. 	
 
                                               
 

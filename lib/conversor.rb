@@ -200,7 +200,14 @@ While the revision of both origin and destiny repo are not the same:
       puts "Commit message: \n-----------\n#{commit_message}\n-----------"        
       system("cd /tmp/#{@svn_destiny_name} && svn status | grep '^\?' | awk '{print $2}' | xargs svn add && svn commit --force-log --username #{author} -m '#{commit_message}' && svn update")
       
+      #update_destiny_server_commit_date_to_origin_commit_date()     
+      
       puts "\n ====== End svn add * , commit, and update ======\n" 
+      
+     end
+     
+     # Update the commit date – in destiny – so it is the same to the date in origin.
+     def update_destiny_server_commit_date_to_origin_commit_date(revision_number)
       
      end
      
