@@ -20,7 +20,9 @@ Current Status
 * Transferring full GitHub repo to another SVN repo that already have commits | it's done!
 * Make commits retain the author name | it's done!
 * Make commits retain the commit message | it's done!
-* Create command line tool so GitSC can be used |  it's done!  
+* Create command line tool so GitSC can be used |  it's done!
+* Think on how to deal with user names and passwords | on it!
+* Integrate with Hoe to make automatic Gem | on it!   
                     
 
 * Make commits have the right date it is not done. 
